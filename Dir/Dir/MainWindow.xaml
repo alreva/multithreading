@@ -1,0 +1,34 @@
+﻿<Window x:Class="Dir.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Dir"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="25"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="50"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <TextBox Name="SourceDir" Grid.Column="0" Text="{Binding Path=StartPath}"></TextBox>
+            <Button Grid.Column="1" IsDefault="True" Click="OnLoadStarted">OK</Button>
+        </Grid>
+        <TreeView Grid.Row="1" Grid.Column="0" Name="Dirs" />
+        <DataGrid Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Path=Files}" />
+        <StatusBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Name="Status">
+            <TextBlock Text="{Binding Path=StatusText}"></TextBlock>
+        </StatusBar>
+    </Grid>
+</Window>
