@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Dir"
         mc:Ignorable="d"
         Title="Dir" Height="350" Width="525"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon="icons/appbar.folder.png">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25"></RowDefinition>
@@ -21,7 +21,22 @@
             <TextBox Name="tbStartPath" Text="{Binding Path=StartPath, UpdateSourceTrigger=PropertyChanged}" />
             <Button Name="btnStart" Click="OnLoadStarted" IsDefault="True" Grid.Column="1">Go</Button>
         </Grid>
-        <TreeView Name="tvFiles" ItemsSource="{Binding Path=Files}" Grid.Row="1" />
+        <TreeView Name="tvFiles" ItemsSource="{Binding Path=Files}" Grid.Row="1">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type local:DirNode}" ItemsSource="{Binding Path=Children}">
+                    <DockPanel>
+                        <Image DockPanel.Dock="Left" Source="icons/appbar.folder.png" Width="20" />
+                        <TextBlock Text="{Binding}" />
+                    </DockPanel>
+                </HierarchicalDataTemplate>
+                <DataTemplate DataType="{x:Type local:FileSystemNode}">
+                    <DockPanel>
+                        <Image DockPanel.Dock="Left" Source="icons/appbar.page.text.png" Width="20" />
+                        <TextBlock Text="{Binding}" />
+                    </DockPanel>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
         <StatusBar Grid.Row="2" Name="status">
             <TextBlock Text="{Binding Path=StatusText}"></TextBlock>
         </StatusBar>
