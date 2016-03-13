@@ -4,14 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Dir"
+        xmlns:display="clr-namespace:Dir.Display"
         mc:Ignorable="d"
         Title="Dir" Height="350" Width="525"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon="icons/appbar.folder.png">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon=".icons/appbar.folder.png">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="25"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="25"></RowDefinition>
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="25" />
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -21,24 +22,18 @@
             <TextBox Name="tbStartPath" Text="{Binding Path=StartPath, UpdateSourceTrigger=PropertyChanged}" />
             <Button Name="btnStart" Click="OnLoadStarted" IsDefault="True" Grid.Column="1">Go</Button>
         </Grid>
-        <TreeView Name="tvFiles" ItemsSource="{Binding Path=Files}" Grid.Row="1">
+        <TreeView Name="tvFiles" ItemsSource="{Binding Path=Files}" Grid.Row="1" >
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:DirNode}" ItemsSource="{Binding Path=Children}">
+                <HierarchicalDataTemplate DataType="{x:Type display:FileSystemNodeView}" ItemsSource="{Binding Path=Children}">
                     <DockPanel>
-                        <Image DockPanel.Dock="Left" Source="icons/appbar.folder.png" Width="20" />
+                        <Image DockPanel.Dock="Left" Source="{Binding Path=IconPath}" Width="20" />
                         <TextBlock Text="{Binding}" />
                     </DockPanel>
                 </HierarchicalDataTemplate>
-                <DataTemplate DataType="{x:Type local:FileSystemNode}">
-                    <DockPanel>
-                        <Image DockPanel.Dock="Left" Source="icons/appbar.page.text.png" Width="20" />
-                        <TextBlock Text="{Binding}" />
-                    </DockPanel>
-                </DataTemplate>
             </TreeView.Resources>
         </TreeView>
         <StatusBar Grid.Row="2" Name="status">
-            <TextBlock Text="{Binding Path=StatusText}"></TextBlock>
+            <TextBlock Text="{Binding Path=StatusText}" />
         </StatusBar>
     </Grid>
 </Window>

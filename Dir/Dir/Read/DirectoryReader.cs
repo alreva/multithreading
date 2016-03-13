@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 
-namespace Dir
+namespace Dir.Read
 {
     public class DirectoryReader
     {
         public event EventHandler<string> DirectoryDiscovered;
         public event EventHandler<IEnumerable<FileSystemNode>> FilesRead;
         public event EventHandler<FileSystemNode> DirectoryRead;
-        public event EventHandler<FileSystemNode> SecurityError;
+        public event EventHandler<string> SecurityError;
 
         public void Run(string path)
         {
@@ -20,8 +21,6 @@ namespace Dir
 
         private long LoadDirectoryInternal(string path)
         {
-            path = path.AppendDirectorySeparatorIfMissing();
-
             DirectoryInfo directory;
             try
             {
@@ -29,7 +28,7 @@ namespace Dir
             }
             catch (SecurityException)
             {
-                OnSecurityError(new FileSystemNode(path, FileSystemObjectSize.Undefined));
+                OnSecurityError(path);
                 return 0;
             }
 
@@ -40,7 +39,7 @@ namespace Dir
             }
             catch (UnauthorizedAccessException e)
             {
-                OnSecurityError(new FileSystemNode(path, FileSystemObjectSize.Undefined));
+                OnSecurityError(path);
                 return 0;
             }
 
@@ -51,7 +50,7 @@ namespace Dir
 
             FileInfo[] files = directory.GetFiles();
 
-            OnFilesRead(files.Select(f => new FileSystemNode(f.GetFullPath(), f.Length)));
+            OnFilesRead(files.Select(file => new FileSystemNode(GetFullPath(file), file.Length)));
 
             long fullSize = files.Sum(f => f.Length);
 
@@ -61,7 +60,7 @@ namespace Dir
                 fullSize += subDirectorySize;
             }
 
-            OnDirectoryRead(new FileSystemNode(directory.GetFullPath(), fullSize));
+            OnDirectoryRead(new FileSystemNode(GetFullPath(directory), fullSize));
 
             return fullSize;
         }
@@ -81,9 +80,23 @@ namespace Dir
             DirectoryRead?.Invoke(this, e);
         }
 
-        protected virtual void OnSecurityError(FileSystemNode e)
+        protected virtual void OnSecurityError(string e)
         {
             SecurityError?.Invoke(this, e);
+        }
+
+        public static string GetFullPath(FileSystemInfo info)
+        {
+            try
+            {
+                return info.FullName;
+            }
+            catch (PathTooLongException)
+            {
+                return (string)info.GetType()
+                    .GetField("FullPath", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(info);
+            }
         }
     }
 }

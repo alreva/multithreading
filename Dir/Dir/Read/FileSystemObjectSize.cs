@@ -1,4 +1,4 @@
-namespace Dir
+namespace Dir.Read
 {
     public class FileSystemObjectSize
     {

@@ -1,10 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Dir;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dir.Read;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Dir.UnitTests
 {
@@ -18,7 +13,7 @@ namespace Dir.UnitTests
             {
                 var size = new FileSystemObjectSize(10000000000);
 
-                var stringRepresentation = size.ToString();
+                string stringRepresentation = size.ToString();
 
                 Assert.AreEqual("9 GB", stringRepresentation);
             }
@@ -28,7 +23,7 @@ namespace Dir.UnitTests
             {
                 var size = new FileSystemObjectSize(10000000);
 
-                var stringRepresentation = size.ToString();
+                string stringRepresentation = size.ToString();
 
                 Assert.AreEqual("9 MB", stringRepresentation);
             }
@@ -38,7 +33,7 @@ namespace Dir.UnitTests
             {
                 var size = new FileSystemObjectSize(10000);
 
-                var stringRepresentation = size.ToString();
+                string stringRepresentation = size.ToString();
 
                 Assert.AreEqual("9 KB", stringRepresentation);
             }
@@ -48,7 +43,7 @@ namespace Dir.UnitTests
             {
                 var size = new FileSystemObjectSize(100);
 
-                var stringRepresentation = size.ToString();
+                string stringRepresentation = size.ToString();
 
                 Assert.AreEqual("100", stringRepresentation);
             }

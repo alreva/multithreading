@@ -51,7 +51,10 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="FileSystemObjectCollectionTests.cs" />
     <Compile Include="FileSystemObjectSizeTests.cs" />
+    <Compile Include="PathHelper.GetShortDirectoryNameTests.cs" />
+    <Compile Include="PathHelper.TryGetParentPathTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

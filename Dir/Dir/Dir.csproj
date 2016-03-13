@@ -59,22 +59,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="App.xaml.cs">
+    <Compile Include="App.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DirectoryReader.cs" />
-    <Compile Include="DirNode.cs" />
-    <Compile Include="FileSystemNode.cs" />
-    <Compile Include="FileSystemObjectCollection.cs" />
-    <Compile Include="FileSystemObjectSize.cs" />
+    <Compile Include="Read\DirectoryReader.cs" />
+    <Compile Include="Read\FileSystemNode.cs" />
+    <Compile Include="Display\FileSystemNodeView.cs" />
+    <Compile Include="Display\FileSystemNodeViewType.cs" />
+    <Compile Include="Display\FileSystemObjectCollection.cs" />
+    <Compile Include="Read\FileSystemObjectSize.cs" />
     <Compile Include="MainWindow.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PathHelper.cs" />
+    <Compile Include="Display\PathHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -102,13 +103,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="icons\appbar.folder.png" />
+    <Resource Include=".icons\appbar.folder.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="icons\appbar.page.text.png" />
+    <Resource Include=".icons\appbar.page.text.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="icons\appbar.folder.open.png" />
+    <Resource Include=".icons\appbar.warning.circle.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
