@@ -16,7 +16,7 @@ namespace Dir.Display
                 return;
             }
 
-            var nodeToAdd = new FileSystemNodeView(path.GetShortDirectoryName(), FileSystemObjectSize.Undefined, FileSystemNodeViewType.Dir);
+            var nodeToAdd = new FileSystemNodeView(path.GetShortDirectoryName() + "...", FileSystemObjectSize.Undefined, FileSystemNodeViewType.Dir);
             _repo.Add(path, nodeToAdd);
             AddToHierarchy(path, nodeToAdd);
         }
@@ -27,7 +27,7 @@ namespace Dir.Display
             AddToHierarchy(path, nodeToAdd);
         }
 
-        public void UpdateSize(string path, FileSystemObjectSize size)
+        public void SetSize(string path, FileSystemObjectSize size)
         {
             FileSystemNodeView dirNode;
             if (!_repo.TryGetValue(path, out dirNode))
@@ -35,6 +35,7 @@ namespace Dir.Display
                 return;
             }
 
+            dirNode.Path = path.GetShortDirectoryName();
             dirNode.Size = size;
         }
 
@@ -46,6 +47,7 @@ namespace Dir.Display
                 return;
             }
 
+            dirNode.Path = path.GetShortDirectoryName();
             dirNode.SetNodeType(FileSystemNodeViewType.DirWithIssues);
         }
 

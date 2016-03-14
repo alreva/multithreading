@@ -24,10 +24,10 @@
         </Grid>
         <TreeView Name="tvFiles" ItemsSource="{Binding Path=Files}" Grid.Row="1" >
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type display:FileSystemNodeView}" ItemsSource="{Binding Path=Children}">
+                <HierarchicalDataTemplate DataType="{x:Type display:FileSystemNodeView}" ItemsSource="{Binding Path=Children, Mode=OneWay}">
                     <DockPanel>
-                        <Image DockPanel.Dock="Left" Source="{Binding Path=IconPath}" Width="20" />
-                        <TextBlock Text="{Binding}" />
+                        <Image DockPanel.Dock="Left" Source="{Binding Path=IconPath, Mode=OneWay}" Width="20" />
+                        <TextBlock Text="{Binding Mode=OneWay}" />
                     </DockPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>

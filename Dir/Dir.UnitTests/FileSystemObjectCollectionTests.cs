@@ -48,7 +48,7 @@ namespace Dir.UnitTests
         }
 
         [TestClass]
-        public class UpdateSizeTests
+        public class SetSizeTests
         {
             private FileSystemObjectCollection _sut;
 
@@ -63,7 +63,7 @@ namespace Dir.UnitTests
             [TestMethod]
             public void should_update_size_for_exact_item()
             {
-                _sut.UpdateSize(@"C:\Users\areva\Source\Repos\multithreading\Dir\Dir\bin\Debug", 100);
+                _sut.SetSize(@"C:\Users\areva\Source\Repos\multithreading\Dir\Dir\bin\Debug", 100);
 
                 Assert.AreEqual("Debug 100", _sut.First().Children.First().ToString());
                 Assert.IsFalse(_sut.First().Size.IsDefined);
