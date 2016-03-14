@@ -2,7 +2,6 @@
 using System.IO;
 using System.Threading;
 using System.Windows;
-using System.Windows.Threading;
 using Dir.Display;
 using Dir.Read;
 
@@ -56,43 +55,23 @@ namespace Dir
             Files.Clear();
 
             var reader = new DirectoryReader();
-
-            reader.DirectoryDiscovered += (_, d) => Dispatcher.Invoke(() => Files.AddDir(d));
-            reader.FilesRead += (_, files) => Dispatcher.Invoke(() =>
+           
+            reader.DirectoryDiscovered += (_, d) => Dispatcher.BeginInvoke(new Action(() => Files.AddDir(d)));
+            reader.FilesRead += (_, files) => Dispatcher.BeginInvoke(new Action(() =>
             {
                 foreach (FileSystemNode file in files)
                 {
                     Files.AddFile(file.Path, file.Size);
                 }
-            });
-            reader.DirectoryRead += (_, d) => Dispatcher.Invoke(() =>
+            }));
+            reader.DirectoryRead += (_, d) => Dispatcher.BeginInvoke(new Action(() => Files.SetSize(d.Path, d.Size)));
+            reader.SecurityError += (_, path) => Dispatcher.BeginInvoke(new Action(() =>
             {
-                Files.SetSize(d.Path, d.Size);
-            });
-            reader.SecurityError += (_, path) => Dispatcher.Invoke(() =>
-            {
+                Files.SetSize(path, 0);
                 Files.SetError(path);
-            });
-            
-/*
-                        reader.DirectoryDiscovered += (_, d) => Dispatcher.BeginInvoke(new Action(() => Files.AddDir(d)));
-                        reader.FilesRead += (_, files) => Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            foreach (FileSystemNode file in files)
-                            {
-                                Files.AddFile(file.Path, file.Size);
-                            }
-                        }));
-                        reader.DirectoryRead += (_, d) => Dispatcher.BeginInvoke(new Action(() => Files.SetSize(d.Path, d.Size)));
-                        reader.SecurityError += (_, path) => Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            Files.SetSize(path, 0);
-                            Files.SetError(path);
-                        }));
-            */
+            }));
 
-            var startPath = StartPath;
-
+            string startPath = StartPath;
             var thread = new Thread(() => reader.Run(startPath));
             thread.Start();
         }

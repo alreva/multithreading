@@ -42,5 +42,20 @@ namespace Dir.Read
         {
             return new FileSystemObjectSize(value);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            return _sizeInBytes == ((FileSystemObjectSize) obj)._sizeInBytes;
+        }
+
+        public override int GetHashCode()
+        {
+            return _sizeInBytes.GetHashCode();
+        }
     }
 }

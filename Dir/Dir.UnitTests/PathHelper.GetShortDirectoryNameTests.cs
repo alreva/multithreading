@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dir.Display;
+﻿using Dir.Display;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Dir.UnitTests

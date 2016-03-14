@@ -1,10 +1,16 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Dir.Read;
 
 namespace Dir.Display
 {
-    public class FileSystemNodeView
+    public class FileSystemNodeView : INotifyPropertyChanged
     {
+        private string _path;
+        private FileSystemObjectSize _size;
+        private string _iconPath;
+
         public FileSystemNodeView(
             string path,
             FileSystemObjectSize size,
@@ -17,9 +23,50 @@ namespace Dir.Display
             Children = new ObservableCollection<FileSystemNodeView>(children);
         }
 
-        public string Path { get; set; }
-        public FileSystemObjectSize Size { get; set; }
-        public string IconPath { get; set; }
+        public string Path
+        {
+            get { return _path; }
+            set
+            {
+                if (Equals(_path, value))
+                {
+                    return;
+                }
+
+                _path = value;
+                OnPropertyChanged(nameof(Path));
+            }
+        }
+
+        public FileSystemObjectSize Size
+        {
+            get { return _size; }
+            set
+            {
+                if (Equals(_size, value))
+                {
+                    return;
+                }
+
+                _size = value;
+                OnPropertyChanged(nameof(Size));
+            }
+        }
+
+        public string IconPath
+        {
+            get { return _iconPath; }
+            set
+            {
+                if (Equals(_iconPath, value))
+                {
+                    return;
+                }
+
+                _iconPath = value;
+                OnPropertyChanged(nameof(IconPath));
+            }
+        }
 
         public void SetNodeType(FileSystemNodeViewType type)
         {
@@ -43,5 +90,16 @@ namespace Dir.Display
         }
 
         public ObservableCollection<FileSystemNodeView> Children { get; set; }
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
     }
 }
