@@ -50,12 +50,24 @@ namespace Dir
                 return;
             }
 
-            StatusText = StartPath;
-
-            Files.Clear();
+            StartNewSession();
 
             var reader = new DirectoryReader();
            
+            AttachEventHandlers(reader);
+
+            Run(reader);
+        }
+
+        private void Run(DirectoryReader reader)
+        {
+            string startPath = StartPath;
+            var thread = new Thread(() => reader.Run(startPath));
+            thread.Start();
+        }
+
+        private void AttachEventHandlers(DirectoryReader reader)
+        {
             reader.DirectoryDiscovered += (_, d) => Dispatcher.BeginInvoke(new Action(() => Files.AddDir(d)));
             reader.FilesRead += (_, files) => Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -70,10 +82,13 @@ namespace Dir
                 Files.SetSize(path, 0);
                 Files.SetError(path);
             }));
+        }
 
-            string startPath = StartPath;
-            var thread = new Thread(() => reader.Run(startPath));
-            thread.Start();
+        private void StartNewSession()
+        {
+            StatusText = StartPath;
+
+            Files.Clear();
         }
     }
 }
