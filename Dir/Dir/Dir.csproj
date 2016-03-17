@@ -63,6 +63,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FlushingBuffer.cs" />
     <Compile Include="Read\DirectoryReader.cs" />
     <Compile Include="Read\FileSystemNode.cs" />
     <Compile Include="Display\FileSystemNodeView.cs" />

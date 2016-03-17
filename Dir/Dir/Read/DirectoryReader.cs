@@ -13,14 +13,29 @@ namespace Dir.Read
         public event EventHandler<IEnumerable<FileSystemNode>> FilesRead;
         public event EventHandler<FileSystemNode> DirectoryRead;
         public event EventHandler<string> SecurityError;
+        public event EventHandler Complete;
 
         public void Run(string path)
         {
-            LoadDirectoryInternal(path);
+            try
+            {
+                LoadDirectoryInternal(path);
+            }
+            finally
+            {
+                OnComplete();
+            }
         }
 
         private long LoadDirectoryInternal(string path)
         {
+            if (path.Last() == '\\')
+            {
+                path = path.TrimEnd('\\');
+            }
+
+            OnDirectoryDiscovered(path);
+
             DirectoryInfo directory;
             try
             {
@@ -43,16 +58,7 @@ namespace Dir.Read
                 return 0;
             }
 
-            foreach (string subDirectoryPath in subDirectoryPaths)
-            {
-                OnDirectoryDiscovered(subDirectoryPath);
-            }
-
-            FileInfo[] files = directory.GetFiles();
-
-            OnFilesRead(files.Select(file => new FileSystemNode(GetFullPath(file), file.Length)));
-
-            long fullSize = files.Sum(f => f.Length);
+            long fullSize = 0;
 
             foreach (string subDirectoryPath in subDirectoryPaths)
             {
@@ -60,8 +66,11 @@ namespace Dir.Read
                 fullSize += subDirectorySize;
             }
 
-            OnDirectoryRead(new FileSystemNode(GetFullPath(directory), fullSize));
+            FileInfo[] files = directory.GetFiles();
+            OnFilesRead(files.Select(file => new FileSystemNode(GetFullPath(file), file.Length)));
+            fullSize += files.Sum(f => f.Length);
 
+            OnDirectoryRead(new FileSystemNode(GetFullPath(directory), fullSize));
             return fullSize;
         }
 
@@ -97,6 +106,11 @@ namespace Dir.Read
                     .GetField("FullPath", BindingFlags.Instance | BindingFlags.NonPublic)
                     .GetValue(info);
             }
+        }
+
+        protected virtual void OnComplete()
+        {
+            Complete?.Invoke(this, EventArgs.Empty);
         }
     }
 }
