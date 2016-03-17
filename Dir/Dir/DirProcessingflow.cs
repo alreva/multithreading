@@ -12,13 +12,14 @@ namespace Dir
     public class DirProcessingflow
     {
         private readonly string _startPath;
+        private readonly string _outputPath;
         private readonly DirectoryReader _reader;
         private readonly FileSystemObjectCollection _files;
         private readonly Dispatcher _dispatcher;
 
-        public static DirProcessingflow Run(Dispatcher dispatcher, FileSystemObjectCollection files, string startPath)
+        public static DirProcessingflow Run(Dispatcher dispatcher, FileSystemObjectCollection files, string startPath, string outputPath)
         {
-            var flow = new DirProcessingflow(startPath, dispatcher, files, new DirectoryReader());
+            var flow = new DirProcessingflow(startPath, outputPath, dispatcher, files, new DirectoryReader());
             flow.SetUpUiUpdates();
             flow.SetUpXmlWrites();
             flow.Start();
@@ -43,9 +44,15 @@ namespace Dir
             _reader.Run(_startPath);
         }
 
-        private DirProcessingflow(string startPath, Dispatcher dispatcher, FileSystemObjectCollection files, DirectoryReader reader)
+        private DirProcessingflow(
+            string startPath,
+            string outputPath,
+            Dispatcher dispatcher,
+            FileSystemObjectCollection files,
+            DirectoryReader reader)
         {
             _startPath = startPath;
+            _outputPath = outputPath;
             _reader = reader;
             _dispatcher = dispatcher;
             _files = files;
@@ -107,7 +114,7 @@ namespace Dir
             worker.Start();
 
             XmlWriter xmlW = XmlWriter.Create(
-                File.OpenWrite($"dir_{DateTime.Now.ToFileTime()}.xml"),
+                File.OpenWrite(_outputPath),
                 new XmlWriterSettings { CloseOutput = true, Indent = true });
 
             worker.Enqueue(() =>
