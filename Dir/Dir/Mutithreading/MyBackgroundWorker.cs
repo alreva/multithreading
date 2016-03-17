@@ -128,12 +128,24 @@ namespace Dir.Mutithreading
 
             if (calledExplicitly)
             {
+                if (_workingThread.IsAlive)
+                {
+                    try
+                    {
+                        _workingThread.Abort();
+                    }
+                    catch (ThreadAbortException)
+                    {
+                        // do nothing; this is expected to be thrown.
+                    }
+                }
                 _enqueueBlocker.Close();
                 _workBlocker.Close();
             }
 
             _enqueueBlocker = null;
             _workBlocker = null;
+            _workingThread = null;
 
             _isDisposed = true;
         }

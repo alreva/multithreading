@@ -10,11 +10,14 @@ namespace Dir.Read
 {
     public class DirectoryReader
     {
+        private volatile bool _shouldTerminate = false;
+
         public event EventHandler<string> DirectoryDiscovered;
         public event EventHandler<IEnumerable<FileSystemNode>> FilesRead;
         public event EventHandler<FileSystemNode> DirectoryRead;
         public event EventHandler<string> SecurityError;
         public event EventHandler Complete;
+        public event EventHandler Terminating;
 
         public void Run(string path)
         {
@@ -26,13 +29,28 @@ namespace Dir.Read
                 }
                 finally
                 {
-                    OnComplete();
+                    if (!_shouldTerminate)
+                    {
+                        OnComplete();
+                    }
                 }
             }).Start();
         }
 
+        public void TerminateImmediately()
+        {
+            _shouldTerminate = true;
+        }
+
         private long LoadDirectoryInternal(string path)
         {
+            if (_shouldTerminate)
+            {
+                OnTerminating();
+                Thread.CurrentThread.Abort();
+                return 0;
+            }
+
             if (path.Last() == '\\')
             {
                 path = path.TrimEnd('\\');
@@ -115,6 +133,11 @@ namespace Dir.Read
         protected virtual void OnComplete()
         {
             Complete?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnTerminating()
+        {
+            Terminating?.Invoke(this, EventArgs.Empty);
         }
     }
 }

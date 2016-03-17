@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using Dir.Display;
@@ -14,6 +15,7 @@ namespace Dir
         public static readonly DependencyProperty StatusTextProperty = DependencyProperty.Register(nameof(StatusText), typeof (string), typeof (MainWindow), new PropertyMetadata(default(string)));
         public static readonly DependencyProperty StartPathProperty = DependencyProperty.Register(nameof(StartPath), typeof (string), typeof (MainWindow), new PropertyMetadata(default(string)));
         public static readonly DependencyProperty FilesProperty = DependencyProperty.Register(nameof(Files), typeof (FileSystemObjectCollection), typeof (MainWindow), new PropertyMetadata(default(FileSystemObjectCollection)));
+        private DirProcessingflow _flow;
 
         public string StartPath
         {
@@ -55,7 +57,7 @@ namespace Dir
 
             // There is not reason to introduce a new type here. This is nore for readability:
             // Window - for storing UI, DirProcessingflow - for processing.
-            DirProcessingflow.Run(Dispatcher, Files, startPath);
+            _flow = DirProcessingflow.Run(Dispatcher, Files, startPath);
         }
 
 
@@ -63,6 +65,11 @@ namespace Dir
         {
             StatusText = StartPath;
             Files.Clear();
+        }
+
+        private void MainWindow_OnClosing(object sender, CancelEventArgs e)
+        {
+            _flow?.Terminate();
         }
     }
 }

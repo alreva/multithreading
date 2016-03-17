@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Windows.Threading;
 using System.Xml;
 using Dir.Display;
@@ -15,12 +16,26 @@ namespace Dir
         private readonly FileSystemObjectCollection _files;
         private readonly Dispatcher _dispatcher;
 
-        public static void Run(Dispatcher dispatcher, FileSystemObjectCollection files, string startPath)
+        public static DirProcessingflow Run(Dispatcher dispatcher, FileSystemObjectCollection files, string startPath)
         {
-            var process = new DirProcessingflow(startPath, dispatcher, files, new DirectoryReader());
-            process.SetUpUiUpdates();
-            process.SetUpXmlWrites();
-            process.Start();
+            var flow = new DirProcessingflow(startPath, dispatcher, files, new DirectoryReader());
+            flow.SetUpUiUpdates();
+            flow.SetUpXmlWrites();
+            flow.Start();
+
+            return flow;
+        }
+
+        public void Terminate()
+        {
+            try
+            {
+                _reader.TerminateImmediately();
+            }
+            catch (ThreadAbortException)
+            {
+                // do nothing here, this is expected
+            }
         }
 
         private void Start()
@@ -71,6 +86,11 @@ namespace Dir
             _reader.Complete += (sender, args) =>
             {
                 worker.Close();
+            };
+
+            _reader.Terminating += (sender, args) =>
+            {
+                worker.Dispose();
             };
         }
 
@@ -137,10 +157,17 @@ namespace Dir
             {
                 worker.Enqueue(() => xmlW.WriteEndElement());
                 worker.Enqueue(() => xmlW.WriteEndDocument());
-                worker.Enqueue(() => xmlW.Dispose());
+                worker.Enqueue(() => xmlW.Close());
                 worker.Enqueue(() => xmlW = null);
 
                 worker.Close();
+            };
+
+            _reader.Terminating += (sender, args) =>
+            {
+                worker.Enqueue(() => xmlW.Close());
+                worker.Enqueue(() => xmlW = null);
+                worker.Dispose();
             };
         }
     }

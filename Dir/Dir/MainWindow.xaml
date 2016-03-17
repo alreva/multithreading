@@ -7,7 +7,8 @@
         xmlns:display="clr-namespace:Dir.Display"
         mc:Ignorable="d"
         Title="Dir" Height="350" Width="525"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon=".icons/appbar.folder.png">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}" Icon=".icons/appbar.folder.png"
+        Closing="MainWindow_OnClosing">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25" />
