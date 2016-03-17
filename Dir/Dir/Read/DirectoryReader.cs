@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security;
+using System.Threading;
 
 namespace Dir.Read
 {
@@ -17,14 +18,17 @@ namespace Dir.Read
 
         public void Run(string path)
         {
-            try
+            new Thread(() =>
             {
-                LoadDirectoryInternal(path);
-            }
-            finally
-            {
-                OnComplete();
-            }
+                try
+                {
+                    LoadDirectoryInternal(path);
+                }
+                finally
+                {
+                    OnComplete();
+                }
+            }).Start();
         }
 
         private long LoadDirectoryInternal(string path)
