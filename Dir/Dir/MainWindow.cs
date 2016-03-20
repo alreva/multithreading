@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using Dir.Display;
+using Dir.Mutithreading;
 using Dir.Read;
 
 namespace Dir

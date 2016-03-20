@@ -51,6 +51,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="EnumFormatterTests.cs" />
     <Compile Include="FileSystemObjectCollectionTests.cs" />
     <Compile Include="FileSystemObjectSizeTests.cs" />
     <Compile Include="PathHelper.GetShortDirectoryNameTests.cs" />

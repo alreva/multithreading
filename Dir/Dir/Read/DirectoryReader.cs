@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading;
 
 namespace Dir.Read
@@ -80,20 +81,20 @@ namespace Dir.Read
                 return 0;
             }
 
-            long fullSize = 0;
+            long totalSize = 0;
 
             foreach (string subDirectoryPath in subDirectoryPaths)
             {
                 long subDirectorySize = LoadDirectoryInternal(subDirectoryPath);
-                fullSize += subDirectorySize;
+                totalSize += subDirectorySize;
             }
 
             FileInfo[] files = directory.GetFiles();
-            OnFilesRead(files.Select(file => new FileSystemNode(GetFullPath(file), file.Length)));
-            fullSize += files.Sum(f => f.Length);
+            OnFilesRead(files.Select(file => FileSystemNodeBuilder.Create(file)));
+            totalSize += files.Sum(f => f.Length);
 
-            OnDirectoryRead(new FileSystemNode(GetFullPath(directory), fullSize));
-            return fullSize;
+            OnDirectoryRead(FileSystemNodeBuilder.Create(directory, totalSize));
+            return totalSize;
         }
 
         protected virtual void OnDirectoryDiscovered(string e)
@@ -116,18 +117,33 @@ namespace Dir.Read
             SecurityError?.Invoke(this, e);
         }
 
-        public static string GetFullPath(FileSystemInfo info)
+        private static bool TryGetPermissions(FileInfo file, out string permissions)
         {
+            permissions = null;
+
             try
             {
-                return info.FullName;
+                AuthorizationRuleCollection rules = file.GetAccessControl().GetAccessRules(true, true, typeof (SecurityIdentifier));
+                permissions = string.Join(", ", rules.OfType<FileSystemAccessRule>().Select(rule => $"{rule.AccessControlType} {rule.FileSystemRights}"));
+                return !string.IsNullOrWhiteSpace(permissions);
             }
-            catch (PathTooLongException)
+            catch (IOException)
             {
-                return (string)info.GetType()
-                    .GetField("FullPath", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .GetValue(info);
+                return false;
             }
+            catch (PrivilegeNotHeldException)
+            {
+                return false;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
+        private string GetFileAttributes(string filePath)
+        {
+            return File.GetAttributes(filePath).ToString();
         }
 
         protected virtual void OnComplete()

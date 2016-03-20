@@ -4,10 +4,9 @@ using System.Threading;
 using System.Windows.Threading;
 using System.Xml;
 using Dir.Display;
-using Dir.Mutithreading;
 using Dir.Read;
 
-namespace Dir
+namespace Dir.Mutithreading
 {
     public class DirProcessingflow
     {
@@ -60,7 +59,7 @@ namespace Dir
 
         private void SetUpUiUpdates()
         {
-            // Need to have a low queue length since the cmaller the UI change - the less time the UI thread is blocked.
+            // Need to have a low queue length since the smaller the UI change - the less time the UI thread is blocked.
             // In fact, I would not do multithreaded UI output here; this is due to the constraint in the requirements to have a UI output thread.
             var worker = new MyBackgroundWorker(1);
             worker.Start();
@@ -140,6 +139,12 @@ namespace Dir
                     {
                         worker.Enqueue(() => xmlW.WriteAttributeString("size", file.Size.ToString()));
                     }
+
+                    foreach (NameValue nameValue in file.Properties)
+                    {
+                        worker.Enqueue(() => xmlW.WriteAttributeString(nameValue.Name, nameValue.Value));
+                    }
+
                     worker.Enqueue(() => xmlW.WriteEndElement());
                 }
             };
@@ -149,6 +154,10 @@ namespace Dir
                 if (dir.Size.IsDefined)
                 {
                     worker.Enqueue(() => xmlW.WriteElementString("size", dir.Size.ToString()));
+                    foreach (NameValue nameValue in dir.Properties)
+                    {
+                        worker.Enqueue(() => xmlW.WriteElementString(nameValue.Name, nameValue.Value));
+                    }
                 }
                 worker.Enqueue(() => xmlW.WriteEndElement());
             };
