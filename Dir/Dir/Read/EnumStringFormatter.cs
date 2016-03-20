@@ -9,7 +9,7 @@ namespace Dir.Read
 {
     public static class EnumStringFormatter
     {
-        public static string ToString2<T>(this T enumValue)
+        public static string EnumValueToString<T>(this T enumValue)
             where T: struct
         {
             if (!typeof (T).IsEnum)

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Dir.Display;
 
 namespace Dir.Read
 {
@@ -16,38 +16,90 @@ namespace Dir.Read
 
         public static FileSystemNode Create(FileInfo file)
         {
+            var fullPath = GetFullPath(file);
+
             var properties = new List<NameValue>();
 
             file.AddFileSystemInfoPropertiesTo(properties);
 
-            string owner = file.GetAccessControl().GetOwner(typeof(NTAccount)).ToString();
-            properties.Add(new NameValue(nameof(owner), owner));
-
-            FileSystemRights effectivePermissions = GetEffectivePermissionsOnFileForCurrentUser(file);
-            if (effectivePermissions != default (FileSystemRights))
+            CommonObjectSecurity security;
+            if (TryGetAccessControl(fullPath, out security))
             {
-                properties.Add(new NameValue(nameof(effectivePermissions), effectivePermissions.ToString2()));
+                security.AddSecurityPropertiesTo(properties);
             }
 
-            return new FileSystemNode(GetFullPath(file), file.Length, properties.ToArray());
+            return new FileSystemNode(fullPath, file.Length, properties.ToArray());
         }
 
         public static FileSystemNode Create(DirectoryInfo dir, long calculatedSize = 0)
         {
+            var fullPath = GetFullPath(dir);
+
             var properties = new List<NameValue>();
 
             dir.AddFileSystemInfoPropertiesTo(properties);
 
-            string owner = dir.GetAccessControl().GetOwner(typeof(NTAccount)).ToString();
-            properties.Add(new NameValue(nameof(owner), owner));
-
-            FileSystemRights effectivePermissions = GetEffectivePermissionsOnDirectoryForCurrentUser(dir);
-            if (effectivePermissions != default(FileSystemRights))
+            CommonObjectSecurity security;
+            if (TryGetAccessControl(dir, out security))
             {
-                properties.Add(new NameValue(nameof(effectivePermissions), effectivePermissions.ToString2()));
+                security.AddSecurityPropertiesTo(properties);
             }
 
-            return new FileSystemNode(GetFullPath(dir), calculatedSize, properties.ToArray());
+            return new FileSystemNode(fullPath, calculatedSize, properties.ToArray());
+        }
+
+        private static bool TryGetAccessControl(this DirectoryInfo dir, out CommonObjectSecurity accessControl)
+        {
+            try
+            {
+                accessControl = dir.GetAccessControl();
+                return true;
+            }
+            // Strategy / template method pattern usage is possible here, but I prefer readability over code doubling in this particular case:
+            // this is only 10 lines of code doubled.
+            catch (Exception exception)
+            {
+                if (!IsSecurityRelatedException(exception))
+                {
+                    throw;
+                }
+
+                accessControl = null;
+                return false;
+            }
+        }
+
+        private static bool TryGetAccessControl(this string fullPath, out CommonObjectSecurity accessControl)
+        {
+            if (fullPath.IsPathTooLong())
+            {
+                fullPath = fullPath.GetShortName();
+            }
+
+            try
+            {
+                accessControl = File.GetAccessControl(fullPath);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                if (!IsSecurityRelatedException(exception))
+                {
+                    throw;
+                }
+
+                accessControl = null;
+                return false;
+            }
+        }
+
+        private static bool IsSecurityRelatedException(Exception exception)
+        {
+            return
+                exception is UnauthorizedAccessException
+                    // Well, this is a hard code that tells the exact reason why the exception occured.
+                    // Maybe there is an error code that corresponds to this particular error, but this is + time to check.
+                || (exception is SystemException && exception.Message == "The trust relationship between this workstation and the primary domain failed");
         }
 
         /// <summary>
@@ -64,15 +116,21 @@ namespace Dir.Read
             properties.Add(new NameValue(nameof(attributes), attributes));
         }
 
-        private static FileSystemRights GetEffectivePermissionsOnDirectoryForCurrentUser(DirectoryInfo dir)
+        private static void AddSecurityPropertiesTo(this CommonObjectSecurity security, List<NameValue> properties)
         {
-            AuthorizationRuleCollection authorizationRules = dir.GetAccessControl().GetAccessRules(true, true, typeof(SecurityIdentifier));
-            return GetEffectivePermissionsForCurrentUser(authorizationRules);
+            string owner = security.GetOwner(typeof (NTAccount)).ToString();
+            properties.Add(new NameValue(nameof(owner), owner));
+
+            FileSystemRights effectivePermissions = GetEffectivePermissionsForCurrentUser(security);
+            if (effectivePermissions != default(FileSystemRights))
+            {
+                properties.Add(new NameValue(nameof(effectivePermissions), effectivePermissions.EnumValueToString()));
+            }
         }
 
-        private static FileSystemRights GetEffectivePermissionsOnFileForCurrentUser(FileInfo file)
+        private static FileSystemRights GetEffectivePermissionsForCurrentUser(CommonObjectSecurity security)
         {
-            AuthorizationRuleCollection authorizationRules = file.GetAccessControl().GetAccessRules(true, true, typeof(SecurityIdentifier));
+            AuthorizationRuleCollection authorizationRules = security.GetAccessRules(true, true, typeof(SecurityIdentifier));
             return GetEffectivePermissionsForCurrentUser(authorizationRules);
         }
 
