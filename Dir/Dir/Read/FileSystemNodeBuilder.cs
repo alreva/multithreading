@@ -64,7 +64,7 @@ namespace Dir.Read
                 //     - P/Invoke:
                 //         - GetSecurityInfo https://msdn.microsoft.com/en-us/library/windows/desktop/aa446654(v=vs.85).aspx
                 //         - GetEffectiveRightsFromAcl https://msdn.microsoft.com/en-us/library/windows/desktop/aa446637(v=vs.85).aspx
-                // For the time being this case is not supported anf the TryGetAccessControl will fail safely.
+                // For the time being this case is not supported and the TryGetAccessControl fails safely:
                 accessControl = null;
                 return false;
             }
