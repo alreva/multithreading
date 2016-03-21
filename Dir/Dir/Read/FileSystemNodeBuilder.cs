@@ -16,69 +16,62 @@ namespace Dir.Read
 
         public static FileSystemNode Create(FileInfo file)
         {
-            var fullPath = GetFullPath(file);
+            string fullPath = GetFullPath(file);
 
-            var properties = new List<NameValue>();
+            NameValue[] properties = BuildProperties(file, File.GetAccessControl, fullPath);
 
-            file.AddFileSystemInfoPropertiesTo(properties);
-
-            CommonObjectSecurity security;
-            if (TryGetAccessControl(fullPath, out security))
-            {
-                security.AddSecurityPropertiesTo(properties);
-            }
-
-            return new FileSystemNode(fullPath, file.Length, properties.ToArray());
+            return new FileSystemNode(fullPath, file.Length, properties);
         }
 
         public static FileSystemNode Create(DirectoryInfo dir, long calculatedSize = 0)
         {
-            var fullPath = GetFullPath(dir);
+            string fullPath = GetFullPath(dir);
 
+            NameValue[] properties = BuildProperties(dir, Directory.GetAccessControl, fullPath);
+
+            return new FileSystemNode(fullPath, calculatedSize, properties);
+        }
+
+        private static NameValue[] BuildProperties(
+            FileSystemInfo info,
+            Func<string, CommonObjectSecurity> accessControlGetter,
+            string fullPath)
+        {
             var properties = new List<NameValue>();
 
-            dir.AddFileSystemInfoPropertiesTo(properties);
+            info.AddFileSystemInfoPropertiesTo(properties);
 
             CommonObjectSecurity security;
-            if (TryGetAccessControl(dir, out security))
+            if (TryGetAccessControl(fullPath, accessControlGetter, out security))
             {
                 security.AddSecurityPropertiesTo(properties);
             }
 
-            return new FileSystemNode(fullPath, calculatedSize, properties.ToArray());
+            return properties.ToArray();
         }
 
-        private static bool TryGetAccessControl(this DirectoryInfo dir, out CommonObjectSecurity accessControl)
-        {
-            try
-            {
-                accessControl = dir.GetAccessControl();
-                return true;
-            }
-            // Strategy / template method pattern usage is possible here, but I prefer readability over code doubling in this particular case:
-            // this is only 10 lines of code doubled.
-            catch (Exception exception)
-            {
-                if (!IsSecurityRelatedException(exception))
-                {
-                    throw;
-                }
-
-                accessControl = null;
-                return false;
-            }
-        }
-
-        private static bool TryGetAccessControl(this string fullPath, out CommonObjectSecurity accessControl)
+        private static bool TryGetAccessControl(
+            this string fullPath,
+            Func<string, CommonObjectSecurity> accessControlGetter,
+            out CommonObjectSecurity accessControl)
         {
             if (fullPath.IsPathTooLong())
             {
-                fullPath = fullPath.GetShortName();
+                // Unfortunately standard .Net System.IO does not provide access control for long paths.
+                // Need to use non-standard libraries such as
+                //     - Pri.LongPath (see https://www.nuget.org/packages/Pri.LongPath/)
+                //     - AlphaFS (see http://alphafs.alphaleonis.com/)
+                //     - P/Invoke:
+                //         - GetSecurityInfo https://msdn.microsoft.com/en-us/library/windows/desktop/aa446654(v=vs.85).aspx
+                //         - GetEffectiveRightsFromAcl https://msdn.microsoft.com/en-us/library/windows/desktop/aa446637(v=vs.85).aspx
+                // For the time being this case is not supported anf the TryGetAccessControl will fail safely.
+                accessControl = null;
+                return false;
             }
 
             try
             {
-                accessControl = File.GetAccessControl(fullPath);
+                accessControl = accessControlGetter(fullPath);
                 return true;
             }
             catch (Exception exception)
@@ -98,7 +91,7 @@ namespace Dir.Read
             return
                 exception is UnauthorizedAccessException
                     // Well, this is a hard code that tells the exact reason why the exception occured.
-                    // Maybe there is an error code that corresponds to this particular error, but this is + time to check.
+                    // Maybe there is an error code that corresponds to this particular error.
                 || (exception is SystemException && exception.Message == "The trust relationship between this workstation and the primary domain failed");
         }
 

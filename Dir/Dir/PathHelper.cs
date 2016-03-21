@@ -8,21 +8,6 @@ namespace Dir.Display
 {
     public static class PathHelper
     {
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetShortPathNameW", SetLastError = true)]
-        static extern int GetShortPathNameW(string pathName, StringBuilder shortName, int cbShortName);
-
-        public static string GetShortName(this string sLongFileName)
-        {
-            var buffer = new StringBuilder(200);
-            int len = GetShortPathNameW("\\\\?\\" + sLongFileName, buffer, 200);
-            if (len == 0)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return buffer.ToString("\\\\?\\".Length, buffer.Length - "\\\\?\\".Length);
-        }
-
         public static bool IsPathTooLong(this string fullPath)
         {
             return fullPath.Length > 255;
